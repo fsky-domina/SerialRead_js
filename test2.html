@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Chart.js库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        #buttonarea {
+            height: 10%;
+            width: 100%;
+            padding: 20px;
+        }
+
+        #container {
+            height: 500px;
+            width: auto;
+            position: relative;
+        }
+
+        #text1 {
+            float: left;
+            height: 100%;
+            width: 50%;
+            background-color: aquamarine;
+            position: relative;
+        }
+
+        #text2 {
+            float: right;
+            height: 100%;
+            width: 50%;
+            background-color: aqua;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div id="buttonarea">
+        <button id="button">Start</button>
+    </div>
+    <div id="container">
+        <div id="text1">
+            <canvas id="myChart1" style="width: 100%"></canvas>
+        </div>
+        <div id="text2">
+            <canvas id="myChart2" style="width: 100%"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let One = new Array(50).fill(0);
+        let Two = new Array(50).fill(0);
+        const X = [];
+        for (let i = 1; i <= 50; i++) {
+            X.push(i);
+        }
+
+        const button = document.getElementById('button');
+
+        // 创建初始图表
+        const ctx1 = document.getElementById('myChart1').getContext('2d');
+        const ctx2 = document.getElementById('myChart2').getContext('2d');
+
+        const chart1 = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: X,
+                datasets: [{
+                    label: 'One',
+                    data: One,
+                    borderColor: 'aquamarine',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        display: false // 不显示 x 轴
+                    },
+                    y: {
+                        display:false,
+                        min: 0,
+                        max: 255
+                    }
+                }
+            }
+        });
+
+        const chart2 = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: X,
+                datasets: [{
+                    label: 'Two',
+                    data: Two,
+                    borderColor: 'aqua',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        display: false // 不显示 x 轴
+                    },
+                    y: {
+                        display:false,
+                        min: 0,
+                        max: 255
+                    }
+                }
+            }
+        });
+
+async function connect() {
+    const port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 9600 });
+    console.log("Serial Open");//串口报错
+    while (true) {
+        const decoder = new TextDecoderStream();
+        port.readable.pipeTo(decoder.writable);
+        const reader = decoder.readable.getReader();
+        let buffer = '';
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done){
+                alert("Connecting Stop");
+                break;
+            }
+            buffer += value;
+            console.log(value);
+            // let First=value.slice(0,1);
+            // switch (First) {
+            // case 'A':
+            //     One.push(value.slice(1,value.length));
+            //     console.log("value"+value.slice(1,value.length));
+            //     One.shift();
+            //     chart1.update();
+            //     break;
+            // case 'B':
+            //     Two.push(value.slice(1,value.length));
+            //     console.log("value"+value.slice(1,value.length));
+            //     Two.shift();
+            //     chart2.update();
+            //     break;
+            // }
+        }
+    }
+}
+
+        button.addEventListener("click", function() {
+            connect();
+            button.disabled = true;
+        });
+    </script>
+</body>
+</html>
